@@ -1,0 +1,12 @@
+﻿Final-Ex.obj : error LNK2019: 未解決の外部シンボル erase が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル init_pair が関数 main で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル initscr が関数 main で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル mvaddch が関数 "void __cdecl DrawChar(int,int,char,int)" (?DrawChar@@YAXHHDH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル mvaddstr が関数 "void __cdecl DrawString(int,int,char *,int)" (?DrawString@@YAXHHPEADH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル napms が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル noecho が関数 main で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル refresh が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル start_color が関数 main で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル resize_term が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+C:\Users\hayat\Documents\GitHub\Final-Ex\PDCursesLib\lib\pdcurses.lib : warning LNK4272: ライブラリのコンピューターの種類 'x86' がターゲットのコンピューターの種類' x64' と競合しています
+C:\Users\hayat\Documents\GitHub\Final-Ex\x64\Debug\Final-Ex.exe : fatal error LNK1120: 10 件の未解決の外部参照

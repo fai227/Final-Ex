@@ -1,50 +1,23 @@
 #pragma once
 #include <random>
 
-//Puyo Colors
-enum Color {
-	Red,
-	Blue,
-	Yellow,
-	Green,
-	Purple
-};
+#define RED_PAIR 1
+#define BLUE_PAIR 2
+#define YELLOW_PAIR 3
+#define GREEN_PAIR 4
+#define PURPLE_PAIR 5
+#define WHITE_PAIR 6
 
 //Puyo
 struct Puyo
 {
 	//Puyo Color
-	Color color;
+	int color;
 
 	//Constructor
 	Puyo(int colorNum) {
 		//Choose Color with Random
-		switch (rand() % colorNum)
-		{
-		case 0:
-			color = Red;
-			break;
-
-		case 1:
-			color = Blue;
-			break;
-
-		case 2:
-			color = Yellow;
-			break;
-
-		case 3:
-			color = Green;
-			break;
-
-		case 4:
-			color = Purple;
-			break;
-
-		default:
-			color = Red;
-			break;
-		}
+		color = rand() % 5 + 1;
 	}
 };
 

@@ -29,5 +29,8 @@
     <ClInclude Include="Puyo.h">
       <Filter>ソース ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Module.h">
+      <Filter>ソース ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
