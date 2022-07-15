@@ -14,15 +14,16 @@
 void MainScreen(int point);
 void SettingScreen();
 void GameScreen(int colorNum);
-void DrawPuyo(int, int, int);
+void DrawPuyo(int, int, int, bool);
 void DrawPuyoPuyo(PuyoPuyo*);
 void DrawChar(int, int, char, int);
 void DrawString(int, int, const char*, int);
 bool IsValidMove(PuyoPuyo*, int);
-bool IsValidRotation(PuyoPuyo*, int);
+bool IsValidRotate(PuyoPuyo*, int);
 void SetPuyoPositions(PuyoPuyo*, PuyoPuyo*, PuyoPuyo*);
-
-
+void DrawField(PuyoPuyo*, PuyoPuyo*);
+bool DropPuyo();
+void CheckField(int[HEIGHT][WIDTH], int, int, int*);
 
 //----------Global Variables----------
 int field[HEIGHT][WIDTH] = {
@@ -227,8 +228,6 @@ void SettingScreen() {
     MainScreen(0);
 }
 
-
-
 //Display Game Screen
 void GameScreen(int colorNum) {
     //Initialize Field
@@ -257,9 +256,6 @@ void GameScreen(int colorNum) {
     int dropDuration = 1000;
 
     while (true) {
-        //Clear Display
-        erase();
-
         //Reset Variables
         isGround = false;
         
@@ -275,10 +271,14 @@ void GameScreen(int colorNum) {
         }
 
         if (GetButtonDown(4)) { //Rotate Right
-
+            if (IsValidRotate(&nowPuyo, (nowPuyo.puyoDirection + 3) % 4)) {
+                nowPuyo.puyoDirection = (nowPuyo.puyoDirection + 3) % 4;
+            }
         }
         if (GetButtonDown(5)) {  //Rotate Left
-
+            if (IsValidRotate(&nowPuyo, (nowPuyo.puyoDirection + 1) % 4)) {
+                nowPuyo.puyoDirection = (nowPuyo.puyoDirection + 1) % 4;
+            }
         }
 
         //Inputs
@@ -315,39 +315,11 @@ void GameScreen(int colorNum) {
             counter = 0;
         }
 
-        //Draw Border
-        DrawString(1, 1, "--------------", WHITE_PAIR);
-        DrawString(1, 14, "--------------", WHITE_PAIR);
-        for (int i = 2; i <= 13; i++) {
-            DrawChar(1, i, '|', WHITE_PAIR);
-            DrawChar(14, i, '|', WHITE_PAIR);
-        }
-        //Draw Next and Next Next Puyo Border
-        DrawString(17, 2, "----", WHITE_PAIR);
-        DrawString(17, 5, "----", WHITE_PAIR);
-        DrawString(17, 6, "----", WHITE_PAIR);
-        DrawString(17, 9, "----", WHITE_PAIR);
-        DrawChar(17, 3, '|', WHITE_PAIR);
-        DrawChar(17, 4, '|', WHITE_PAIR);
-        DrawChar(17, 7, '|', WHITE_PAIR);
-        DrawChar(17, 8, '|', WHITE_PAIR);
-        DrawChar(20, 3, '|', WHITE_PAIR);
-        DrawChar(20, 4, '|', WHITE_PAIR);
-        DrawChar(20, 7, '|', WHITE_PAIR);
-        DrawChar(20, 8, '|', WHITE_PAIR);
-
-        //Draw Fielf
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-                if(field[y][x])
-                    DrawPuyo(x, y, field[y][x]);
-            }
-        }
-
-        //Draw PuyoPuyos
+        //Show Display
+        DrawField(&nextPuyo, &nextNextPuyo);
         DrawPuyoPuyo(&nowPuyo);
-        DrawPuyoPuyo(&nextPuyo);
-        DrawPuyoPuyo(&nextNextPuyo);
+        refresh();
+
 
         //Check Combo
         if (isGround) {
@@ -357,6 +329,41 @@ void GameScreen(int colorNum) {
             field[nowPuyo.mainPuyoPositionY][nowPuyo.mainPuyoPositionX] = nowPuyo.mainPuyo->color;
             //Set Sub Puyo
             field[nowPuyo.mainPuyoPositionY + directionVec.y][nowPuyo.mainPuyoPositionX + directionVec.x] = nowPuyo.subPuyo->color;
+
+            //Start Combp
+            while (true) {
+                //Drop All Puyos
+                while (DropPuyo()) {
+                    DrawField(&nextPuyo, &nextNextPuyo);
+                    refresh();
+                    napms(250);
+                }
+
+                //Check Combo
+                bool flag = false;
+
+                int comboField[HEIGHT][WIDTH] = {};  //0:not checked 1:checked 2:no combo 3:combo
+                for (int y = 0; y < HEIGHT; y++) {
+                    for (int x = 0; x < WIDTH; x++) {
+                        if (!comboField[y][x]) {
+                            int counter = 0;
+                            CheckField(comboField, x, y, &counter);
+                            if (counter >= 4) flag = true;
+                            for (int ty = 0; ty < HEIGHT; ty ++) {
+                                for (int tx = 0; tx < WIDTH; tx++) {
+                                    if (comboField[ty][tx] == 1) comboField[ty][tx] = counter >= 4 ? 3 : 2;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+                
+                //Finish Combo
+                if (!flag) break;
+            }
+
             //Generate Next Puyo
             nowPuyo = nextPuyo;
             nextPuyo = nextNextPuyo;
@@ -364,8 +371,6 @@ void GameScreen(int colorNum) {
             SetPuyoPositions(&nowPuyo, &nextPuyo, &nextNextPuyo);
         }
 
-        //Display
-        refresh();
         Wait(fps);
     }
 
@@ -375,13 +380,13 @@ void GameScreen(int colorNum) {
 
 
 //Draw Options
-void DrawPuyo(int posX, int posY, int colorNum) {
-    DrawString((posX + 1) * 2, posY + 2, "●", colorNum);
+void DrawPuyo(int posX, int posY, int colorNum, bool flag) {
+    DrawString((posX + 1) * 2, posY + 2, flag ? "◎":"●", colorNum);
 }
 void DrawPuyoPuyo(PuyoPuyo* puyoPuyo) {
     Vector2 vec = DirectionToVector(puyoPuyo->puyoDirection);
-    DrawPuyo(puyoPuyo->mainPuyoPositionX, puyoPuyo->mainPuyoPositionY, puyoPuyo->mainPuyo->color);
-    DrawPuyo(puyoPuyo->mainPuyoPositionX + vec.x, puyoPuyo->mainPuyoPositionY + vec.y, puyoPuyo->subPuyo->color);
+    DrawPuyo(puyoPuyo->mainPuyoPositionX, puyoPuyo->mainPuyoPositionY, puyoPuyo->mainPuyo->color, false);
+    DrawPuyo(puyoPuyo->mainPuyoPositionX + vec.x, puyoPuyo->mainPuyoPositionY + vec.y, puyoPuyo->subPuyo->color, false);
 }
 void DrawChar(int posX, int posY, char cr, int colorNum) {
     attron(COLOR_PAIR(colorNum));
@@ -415,6 +420,21 @@ bool IsValidMove(PuyoPuyo* puyoPuyo, int direction) {
     return true;
 }
 
+//Check the rotaion
+bool IsValidRotate(PuyoPuyo* puyoPuyo, int direction) {
+    Vector2 vec = DirectionToVector(direction);
+
+    //check sub puyo x position
+    if (puyoPuyo->mainPuyoPositionX + vec.x < 0 || puyoPuyo->mainPuyoPositionX + vec.x >= WIDTH) return false;
+    //check sub puyo y position
+    if (puyoPuyo->mainPuyoPositionY + vec.y < 0 || puyoPuyo->mainPuyoPositionY + vec.y >= HEIGHT) return false;
+    //check no puyos in sub puyo position
+    if (field[puyoPuyo->mainPuyoPositionY + vec.y][puyoPuyo->mainPuyoPositionX + vec.x]) return false;
+
+    return true;
+}
+
+//Set Puyo Positions
 void SetPuyoPositions(PuyoPuyo* nowPuyo, PuyoPuyo* nextPuyo, PuyoPuyo* nextNextPuyo) {
     nowPuyo->mainPuyoPositionX = 2;
     nowPuyo->mainPuyoPositionY = 1;
@@ -424,4 +444,80 @@ void SetPuyoPositions(PuyoPuyo* nowPuyo, PuyoPuyo* nextPuyo, PuyoPuyo* nextNextP
 
     nextNextPuyo->mainPuyoPositionX = 8;
     nextNextPuyo->mainPuyoPositionY = 6;
+}
+
+//Display Field
+void DrawField(PuyoPuyo* nextPuyo, PuyoPuyo* nextNextPuyo) {
+    //Clear Display
+    erase();
+
+    //Draw Border
+    DrawString(1, 1, "--------------", WHITE_PAIR);
+    DrawString(1, 14, "--------------", WHITE_PAIR);
+    for (int i = 2; i <= 13; i++) {
+        DrawChar(1, i, '|', WHITE_PAIR);
+        DrawChar(14, i, '|', WHITE_PAIR);
+    }
+    //Draw Next and Next Next Puyo Border
+    DrawString(17, 2, "----", WHITE_PAIR);
+    DrawString(17, 5, "----", WHITE_PAIR);
+    DrawString(17, 6, "----", WHITE_PAIR);
+    DrawString(17, 9, "----", WHITE_PAIR);
+    DrawChar(17, 3, '|', WHITE_PAIR);
+    DrawChar(17, 4, '|', WHITE_PAIR);
+    DrawChar(17, 7, '|', WHITE_PAIR);
+    DrawChar(17, 8, '|', WHITE_PAIR);
+    DrawChar(20, 3, '|', WHITE_PAIR);
+    DrawChar(20, 4, '|', WHITE_PAIR);
+    DrawChar(20, 7, '|', WHITE_PAIR);
+    DrawChar(20, 8, '|', WHITE_PAIR);
+
+    //Draw Fielf
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            if (field[y][x])
+                DrawPuyo(x, y, field[y][x], false);
+        }
+    }
+
+    DrawPuyoPuyo(nextPuyo);
+    DrawPuyoPuyo(nextNextPuyo);
+}
+
+//Drop Puyos returns false if no puyos can be dropped
+bool DropPuyo() {
+    bool flag = false;
+    
+    for (int x = 0; x < WIDTH; x++) {
+        for (int y = HEIGHT - 2; y >= 0; y--) {
+            //there is a puyo and position one down is empty
+            if (field[y][x] && !field[y + 1][x]) {
+                field[y + 1][x] = field[y][x];
+                field[y][x] = 0;
+                flag = true;
+            }
+        }
+    }
+
+    return flag;
+}
+
+//Check Field Rensa
+void CheckField(int comboField[HEIGHT][WIDTH], int x, int y, int* counter) {
+    if (!comboField[y][x]) {
+        comboField[y][x] = 1;
+    }
+    else {
+        return;
+    }
+    *counter++;
+
+    //Check Left
+    if (x > 0) CheckField(comboField, x - 1, y, counter);
+    //Check Right
+    if (x < WIDTH - 1) CheckField(comboField, x + 1, y, counter);
+    //Check Up
+    if (y > 0) CheckField(comboField, x, y - 1, counter);
+    //Check Down
+    if (x < HEIGHT - 1) CheckField(comboField, x, y + 1, counter);
 }
