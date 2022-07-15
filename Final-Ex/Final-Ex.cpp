@@ -15,13 +15,30 @@ void MainScreen(int point);
 void SettingScreen();
 void GameScreen(int colorNum);
 void DrawPuyo(int, int, int);
-void DrawPuyoPuyo(int, int, int, PuyoPuyo*);
+void DrawPuyoPuyo(PuyoPuyo*);
 void DrawChar(int, int, char, int);
 void DrawString(int, int, const char*, int);
+bool IsValidMove(PuyoPuyo*, int);
+bool IsValidRotation(PuyoPuyo*, int);
+void SetPuyoPositions(PuyoPuyo*, PuyoPuyo*, PuyoPuyo*);
+
 
 
 //----------Global Variables----------
-
+int field[HEIGHT][WIDTH] = {
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,},
+        {0, 0, 0, 0, 0, 0,}
+};
 
 //Currently Directory
 char currentDirectory[CHARBUFF];
@@ -39,7 +56,7 @@ int main()
     noecho();
     start_color();
     init_pair(RED_PAIR, COLOR_RED, COLOR_BLACK);
-    init_pair(BLUE_PAIR, COLOR_BLUE, COLOR_BLACK);
+    init_pair(BLUE_PAIR, COLOR_CYAN, COLOR_BLACK);
     init_pair(YELLOW_PAIR, COLOR_YELLOW, COLOR_BLACK);
     init_pair(GREEN_PAIR, COLOR_GREEN, COLOR_BLACK);
     init_pair(PURPLE_PAIR, COLOR_MAGENTA, COLOR_BLACK);
@@ -110,7 +127,7 @@ void MainScreen(int point) {
             if (difficulty > 3) difficulty--;
         }
         if (GetButtonDown(6)) {  //Exit
-            nextScene = 0;
+            choose = 2;
         }
         if (GetButtonDown(5)) {
             choose = 2;
@@ -211,31 +228,70 @@ void SettingScreen() {
     MainScreen(0);
 }
 
+
+
 //Display Game Screen
 void GameScreen(int colorNum) {
+    //Initialize Field
+    for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < WIDTH; x++) {
+            field[y][x] = 0;
+        }
+    }
+
     char string[BUFFSIZE];
     
     //Set Screen Size
     resize_term(16, 24);
 
-    int field[HEIGHT][WIDTH] = {
-        {0, 0, 0, 0, 0, 0,},
-        {0, 0, 0, 0, 0, 0,},
-        {0, 0, 0, 0, 0, 0,},
-        {0, 0, 0, 0, 0, 0,},
-        {0, 0, 0, 0, 0, 0,},
-        {0, 0, 0, 0, 0, 0,},
-        {0, 5, 0, 0, 0, 0,},
-        {4, 5, 0, 0, 0, 0,},
-        {5, 5, 0, 0, 0, 0,},
-        {4, 2, 1, 0, 0, 0,},
-        {4, 4, 2, 1, 0, 0,},
-        {2, 2, 1, 1, 0, 0,}
-    };
+    //Set puyos
+    PuyoPuyo nowPuyo = *(new PuyoPuyo(colorNum));
+    PuyoPuyo nextPuyo = *(new PuyoPuyo(colorNum));
+    PuyoPuyo nextNextPuyo = *(new PuyoPuyo(colorNum));
+    SetPuyoPositions(&nowPuyo, &nextPuyo, &nextNextPuyo);
+
+    int score = 0;
 
     while (true) {
         //Clear Display
         erase();
+
+
+        //Inputs
+        if (GetButtonDown(0)) { //Fast Drop
+            
+        }
+        else if (GetButtonDown(2)) {    //Move Down 
+            if (IsValidMove(&nowPuyo, 2)) {
+                nowPuyo.mainPuyoPositionY++;
+            }
+            else {
+                //Set Puyo
+
+            }
+        }
+        
+        if (GetButtonDown(1)) { //Move Left
+            if (IsValidMove(&nowPuyo, 1)) {
+                nowPuyo.mainPuyoPositionX--;
+            }
+        } 
+        if (GetButtonDown(3)) { //Move Right
+            if (IsValidMove(&nowPuyo, 3)) {
+                nowPuyo.mainPuyoPositionX++;
+            }
+        }
+
+        if (GetButtonDown(4)) { //Rotate Right
+
+        }
+        if (GetButtonDown(5)) {  //Rotate Left
+
+        }
+
+        if (GetButtonDown(6)) {  //Finish Game
+            break;
+        }
 
         //Draw Border
         DrawString(1, 1, "--------------", WHITE_PAIR);
@@ -244,6 +300,19 @@ void GameScreen(int colorNum) {
             DrawChar(1, i, '|', WHITE_PAIR);
             DrawChar(14, i, '|', WHITE_PAIR);
         }
+        //Draw Next and Next Next Puyo Border
+        DrawString(17, 2, "----", WHITE_PAIR);
+        DrawString(17, 5, "----", WHITE_PAIR);
+        DrawString(17, 6, "----", WHITE_PAIR);
+        DrawString(17, 9, "----", WHITE_PAIR);
+        DrawChar(17, 3, '|', WHITE_PAIR);
+        DrawChar(17, 4, '|', WHITE_PAIR);
+        DrawChar(17, 7, '|', WHITE_PAIR);
+        DrawChar(17, 8, '|', WHITE_PAIR);
+        DrawChar(20, 3, '|', WHITE_PAIR);
+        DrawChar(20, 4, '|', WHITE_PAIR);
+        DrawChar(20, 7, '|', WHITE_PAIR);
+        DrawChar(20, 8, '|', WHITE_PAIR);
 
         //Draw Fielf
         for (int y = 0; y < HEIGHT; y++) {
@@ -253,11 +322,19 @@ void GameScreen(int colorNum) {
             }
         }
 
+        //Draw PuyoPuyos
+        DrawPuyoPuyo(&nowPuyo);
+        DrawPuyoPuyo(&nextPuyo);
+        DrawPuyoPuyo(&nextNextPuyo);
+
         //Display
         refresh();
         //fps30
         Wait(1000 / 30);
     }
+
+    //Go Back to Title Screen
+    MainScreen(score);
 }
 
 
@@ -265,8 +342,10 @@ void GameScreen(int colorNum) {
 void DrawPuyo(int posX, int posY, int colorNum) {
     DrawString((posX + 1) * 2, posY + 2, "〇", colorNum);
 }
-void DrawPuyoPuyo(int posX, int posY, int direction, PuyoPuyo* puyoPuyo) {
-
+void DrawPuyoPuyo(PuyoPuyo* puyoPuyo) {
+    Vector2 vec = DirectionToVector(puyoPuyo->puyoDirection);
+    DrawPuyo(puyoPuyo->mainPuyoPositionX, puyoPuyo->mainPuyoPositionY, puyoPuyo->mainPuyo->color);
+    DrawPuyo(puyoPuyo->mainPuyoPositionX + vec.x, puyoPuyo->mainPuyoPositionY + vec.y, puyoPuyo->subPuyo->color);
 }
 void DrawChar(int posX, int posY, char cr, int colorNum) {
     attron(COLOR_PAIR(colorNum));
@@ -275,4 +354,38 @@ void DrawChar(int posX, int posY, char cr, int colorNum) {
 void DrawString(int posX, int posY, const char* string, int colorNum) {
     attron(COLOR_PAIR(colorNum));
     mvaddstr(posY, posX, string);
+}
+
+//Check the border and puyos in the positions given
+bool IsValidMove(PuyoPuyo* puyoPuyo, int direction) {
+    //Get direction vector
+    Vector2 vec = DirectionToVector(direction);
+    Vector2 subPuyoLocalPosition = DirectionToVector(puyoPuyo->puyoDirection);
+
+    //check main puyo x position
+    if (puyoPuyo->mainPuyoPositionX + vec.x < 0 || puyoPuyo->mainPuyoPositionX + vec.x >= WIDTH) return false;
+    //check main puyo y position
+    if (puyoPuyo->mainPuyoPositionY + vec.y < 0 || puyoPuyo->mainPuyoPositionY + vec.y >= HEIGHT) return false;
+    //check no puyos in main puyo position
+    if (field[puyoPuyo->mainPuyoPositionY + vec.y][puyoPuyo->mainPuyoPositionX + vec.x]) return false;
+
+    //check sub puyo x position
+    if (puyoPuyo->mainPuyoPositionX + subPuyoLocalPosition.x + vec.x < 0 || puyoPuyo->mainPuyoPositionX + subPuyoLocalPosition.x + vec.x >= WIDTH) return false;
+    //check sub puyo y position
+    if (puyoPuyo->mainPuyoPositionY + subPuyoLocalPosition.y + vec.y < 0 || puyoPuyo->mainPuyoPositionY + subPuyoLocalPosition.y + vec.y >= HEIGHT) return false;
+    //check no puyos in sub puyo position
+    if (field[puyoPuyo->mainPuyoPositionY + subPuyoLocalPosition.y + vec.y][puyoPuyo->mainPuyoPositionX + subPuyoLocalPosition.x + vec.x]) return false;
+
+    return true;
+}
+
+void SetPuyoPositions(PuyoPuyo* nowPuyo, PuyoPuyo* nextPuyo, PuyoPuyo* nextNextPuyo) {
+    nowPuyo->mainPuyoPositionX = 2;
+    nowPuyo->mainPuyoPositionY = 1;
+
+    nextPuyo->mainPuyoPositionX = 8;
+    nextPuyo->mainPuyoPositionY = 2;
+
+    nextNextPuyo->mainPuyoPositionX = 8;
+    nextNextPuyo->mainPuyoPositionY = 6;
 }

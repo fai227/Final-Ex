@@ -1,12 +1,21 @@
-﻿Final-Ex.obj : error LNK2019: 未解決の外部シンボル erase が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+﻿  Final-Ex.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\wincontypes.h(103,1): warning C4005: 'MOUSE_MOVED': マクロが再定義されました。
+C:\Users\hayat\Documents\GitHub\Final-Ex\PDCursesLib\include\curses.h(189): message : 'MOUSE_MOVED' の以前の定義を確認してください
+C:\Users\hayat\Documents\GitHub\Final-Ex\Final-Ex\Final-Ex.cpp(216,10): warning C4101: 'string': ローカル変数は 1 度も使われていません。
+  Setting.cpp
+  コードを生成中...
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル attron が関数 "void __cdecl DrawChar(int,int,char,int)" (?DrawChar@@YAXHHDH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル erase が関数 "void __cdecl GameScreen(int)" (?GameScreen@@YAXH@Z) で参照されました
 Final-Ex.obj : error LNK2019: 未解決の外部シンボル init_pair が関数 main で参照されました
 Final-Ex.obj : error LNK2019: 未解決の外部シンボル initscr が関数 main で参照されました
 Final-Ex.obj : error LNK2019: 未解決の外部シンボル mvaddch が関数 "void __cdecl DrawChar(int,int,char,int)" (?DrawChar@@YAXHHDH@Z) で参照されました
-Final-Ex.obj : error LNK2019: 未解決の外部シンボル mvaddstr が関数 "void __cdecl DrawString(int,int,char *,int)" (?DrawString@@YAXHHPEADH@Z) で参照されました
-Final-Ex.obj : error LNK2019: 未解決の外部シンボル napms が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル mvaddstr が関数 "void __cdecl DrawString(int,int,char const *,int)" (?DrawString@@YAXHHPEBDH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル napms が関数 "void __cdecl Wait(int)" (?Wait@@YAXH@Z) で参照されました
 Final-Ex.obj : error LNK2019: 未解決の外部シンボル noecho が関数 main で参照されました
-Final-Ex.obj : error LNK2019: 未解決の外部シンボル refresh が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル refresh が関数 "void __cdecl GameScreen(int)" (?GameScreen@@YAXH@Z) で参照されました
 Final-Ex.obj : error LNK2019: 未解決の外部シンボル start_color が関数 main で参照されました
-Final-Ex.obj : error LNK2019: 未解決の外部シンボル resize_term が関数 "void __cdecl MainScreen(int)" (?MainScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル wgetch が関数 "void __cdecl ButtonThread(void)" (?ButtonThread@@YAXXZ) で参照されました
+Final-Ex.obj : error LNK2019: 未解決の外部シンボル resize_term が関数 "void __cdecl GameScreen(int)" (?GameScreen@@YAXH@Z) で参照されました
+Final-Ex.obj : error LNK2001: 外部シンボル stdscr は未解決です
 C:\Users\hayat\Documents\GitHub\Final-Ex\PDCursesLib\lib\pdcurses.lib : warning LNK4272: ライブラリのコンピューターの種類 'x86' がターゲットのコンピューターの種類' x64' と競合しています
-C:\Users\hayat\Documents\GitHub\Final-Ex\x64\Debug\Final-Ex.exe : fatal error LNK1120: 10 件の未解決の外部参照
+C:\Users\hayat\Documents\GitHub\Final-Ex\x64\Debug\Final-Ex.exe : fatal error LNK1120: 13 件の未解決の外部参照

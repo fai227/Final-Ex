@@ -25,6 +25,32 @@ struct Vector2 {
     };
 };
 
+//Convert direction number to direction vector
+Vector2 DirectionToVector(int direction) {
+    switch (direction)
+    {
+    case 0:
+        return *(new Vector2(0, -1));
+        break;
+
+    case 1:
+        return *(new Vector2(-1, 0));
+        break;
+
+    case 2:
+        return *(new Vector2(0, 1));
+        break;
+
+    case 3:
+        return *(new Vector2(1, 0));
+        break;
+
+    default:
+        return *(new Vector2(0));
+        break;
+    }
+}
+
 //----------Input----------
 //Section Name
 char section[] = "Input";
