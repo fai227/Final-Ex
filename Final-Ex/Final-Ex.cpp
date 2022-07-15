@@ -105,7 +105,6 @@ void MainScreen(int point) {
     int posArray[] = {3, 10, 12};
     int nextScene = -1;
 
-    //fps 15
     while (true) {
         //Clear Display
         erase();
@@ -156,7 +155,7 @@ void MainScreen(int point) {
 
         //Display
         refresh();
-        Wait(1000 / 15);
+        Wait(15);
 
         if (nextScene >= 0) break;
     }
@@ -222,7 +221,7 @@ void SettingScreen() {
 
         //Display
         refresh();
-        Wait(1000 / 15);
+        Wait(15);
     }
 
     MainScreen(0);
@@ -250,26 +249,19 @@ void GameScreen(int colorNum) {
     PuyoPuyo nextNextPuyo = *(new PuyoPuyo(colorNum));
     SetPuyoPositions(&nowPuyo, &nextPuyo, &nextNextPuyo);
 
+    //Variables
     int score = 0;
+    bool isGround;
+    int fps = 30;
+    int counter = 0;
+    int dropDuration = 1000;
 
     while (true) {
         //Clear Display
         erase();
 
-
-        //Inputs
-        if (GetButtonDown(0)) { //Fast Drop
-            
-        }
-        else if (GetButtonDown(2)) {    //Move Down 
-            if (IsValidMove(&nowPuyo, 2)) {
-                nowPuyo.mainPuyoPositionY++;
-            }
-            else {
-                //Set Puyo
-
-            }
-        }
+        //Reset Variables
+        isGround = false;
         
         if (GetButtonDown(1)) { //Move Left
             if (IsValidMove(&nowPuyo, 1)) {
@@ -289,8 +281,38 @@ void GameScreen(int colorNum) {
 
         }
 
+        //Inputs
+        if (GetButtonDown(0)) { //Fast Drop
+            while (IsValidMove(&nowPuyo, 2)) {
+                nowPuyo.mainPuyoPositionY++;
+            }
+            isGround = true;
+            counter = 0;
+        }
+        else if (GetButtonDown(2)) {    //Move Down 
+            if (IsValidMove(&nowPuyo, 2)) {
+                nowPuyo.mainPuyoPositionY++;
+            }
+            else {
+                isGround = true;
+            }
+            counter = 0;
+        }
+
         if (GetButtonDown(6)) {  //Finish Game
             break;
+        }
+
+        //Move automatically down
+        counter += fps;
+        if (counter > dropDuration) {
+            if (IsValidMove(&nowPuyo, 2)) {
+                nowPuyo.mainPuyoPositionY++;
+            }
+            else {
+                isGround = true;
+            }
+            counter = 0;
         }
 
         //Draw Border
@@ -327,10 +349,24 @@ void GameScreen(int colorNum) {
         DrawPuyoPuyo(&nextPuyo);
         DrawPuyoPuyo(&nextNextPuyo);
 
+        //Check Combo
+        if (isGround) {
+            //Set Puyo
+            Vector2 directionVec = DirectionToVector(nowPuyo.puyoDirection);
+            //Set Main Puyo            
+            field[nowPuyo.mainPuyoPositionY][nowPuyo.mainPuyoPositionX] = nowPuyo.mainPuyo->color;
+            //Set Sub Puyo
+            field[nowPuyo.mainPuyoPositionY + directionVec.y][nowPuyo.mainPuyoPositionX + directionVec.x] = nowPuyo.subPuyo->color;
+            //Generate Next Puyo
+            nowPuyo = nextPuyo;
+            nextPuyo = nextNextPuyo;
+            nextNextPuyo = *(new PuyoPuyo(colorNum));
+            SetPuyoPositions(&nowPuyo, &nextPuyo, &nextNextPuyo);
+        }
+
         //Display
         refresh();
-        //fps30
-        Wait(1000 / 30);
+        Wait(fps);
     }
 
     //Go Back to Title Screen
@@ -340,7 +376,7 @@ void GameScreen(int colorNum) {
 
 //Draw Options
 void DrawPuyo(int posX, int posY, int colorNum) {
-    DrawString((posX + 1) * 2, posY + 2, "〇", colorNum);
+    DrawString((posX + 1) * 2, posY + 2, "●", colorNum);
 }
 void DrawPuyoPuyo(PuyoPuyo* puyoPuyo) {
     Vector2 vec = DirectionToVector(puyoPuyo->puyoDirection);

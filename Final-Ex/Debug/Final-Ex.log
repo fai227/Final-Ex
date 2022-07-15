@@ -1,5 +1,5 @@
 ﻿  Final-Ex.cpp
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.19041.0\um\wincontypes.h(103,1): warning C4005: 'MOUSE_MOVED': マクロが再定義されました。
 C:\Users\hayat\Documents\GitHub\Final-Ex\PDCursesLib\include\curses.h(189): message : 'MOUSE_MOVED' の以前の定義を確認してください
-C:\Users\hayat\Documents\GitHub\Final-Ex\Final-Ex\Final-Ex.cpp(242,10): warning C4101: 'string': ローカル変数は 1 度も使われていません。
+C:\Users\hayat\Documents\GitHub\Final-Ex\Final-Ex\Final-Ex.cpp(241,10): warning C4101: 'string': ローカル変数は 1 度も使われていません。
   Final-Ex.vcxproj -> C:\Users\hayat\Documents\GitHub\Final-Ex\Debug\Final-Ex.exe

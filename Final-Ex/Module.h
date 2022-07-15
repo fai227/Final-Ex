@@ -135,5 +135,5 @@ void ClearInput() {
 
 void Wait(int n) {
     ClearInput();
-    napms(n);
+    napms(1000 / n);
 }
