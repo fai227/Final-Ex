@@ -23,7 +23,7 @@ bool IsValidRotate(PuyoPuyo*, int);
 void SetPuyoPositions(PuyoPuyo*, PuyoPuyo*, PuyoPuyo*);
 void DrawField(PuyoPuyo*, PuyoPuyo*);
 bool DropPuyo();
-void CheckField(int[HEIGHT][WIDTH], int, int, int*);
+void CheckField(int[HEIGHT][WIDTH], int, int, int*, int);
 
 //----------Global Variables----------
 int field[HEIGHT][WIDTH] = {
@@ -347,7 +347,7 @@ void GameScreen(int colorNum) {
                     for (int x = 0; x < WIDTH; x++) {
                         if (!comboField[y][x]) {
                             int counter = 0;
-                            CheckField(comboField, x, y, &counter);
+                            CheckField(comboField, x, y, &counter, field[y][x]);
                             if (counter >= 4) flag = true;
                             for (int ty = 0; ty < HEIGHT; ty ++) {
                                 for (int tx = 0; tx < WIDTH; tx++) {
@@ -503,21 +503,22 @@ bool DropPuyo() {
 }
 
 //Check Field Rensa
-void CheckField(int comboField[HEIGHT][WIDTH], int x, int y, int* counter) {
-    if (!comboField[y][x]) {
+void CheckField(int comboField[][WIDTH], int x, int y, int* counter, int color) {
+    if (!comboField[y][x] && field[y][x] == color) {
         comboField[y][x] = 1;
     }
     else {
         return;
     }
-    *counter++;
+    
+    *counter = *counter + 1;
 
     //Check Left
-    if (x > 0) CheckField(comboField, x - 1, y, counter);
+    if (x > 0) CheckField(comboField, x - 1, y, counter, color);
     //Check Right
-    if (x < WIDTH - 1) CheckField(comboField, x + 1, y, counter);
+    if (x < WIDTH - 1) CheckField(comboField, x + 1, y, counter, color);
     //Check Up
-    if (y > 0) CheckField(comboField, x, y - 1, counter);
+    if (y > 0) CheckField(comboField, x, y - 1, counter, color);
     //Check Down
-    if (x < HEIGHT - 1) CheckField(comboField, x, y + 1, counter);
+    if (x < HEIGHT - 1) CheckField(comboField, x, y + 1, counter, color);
 }
