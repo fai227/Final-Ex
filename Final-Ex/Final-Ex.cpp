@@ -4,7 +4,7 @@
 #include "Setting.h"
 #include "Puyo.h"
 #include "Module.h"
-
+#include <time.h>
 
 //----------Defines----------
 #define WIDTH 6
@@ -24,6 +24,7 @@ void SetPuyoPositions(PuyoPuyo*, PuyoPuyo*, PuyoPuyo*);
 void DrawField(PuyoPuyo*, PuyoPuyo*);
 bool DropPuyo();
 void CheckField(int[HEIGHT][WIDTH], int, int, int*, int);
+void ShowScore(int);
 
 //----------Global Variables----------
 int field[HEIGHT][WIDTH] = {
@@ -51,6 +52,7 @@ int main()
     //Initialize Variables
     getCurrentDirectory(currentDirectory);
     sprintf_s(settingFile, "%s\\Setting.ini", currentDirectory);
+    srand((unsigned int)time(NULL));
 
     //Initialize Screen
     initscr();
@@ -70,15 +72,11 @@ int main()
 
 
     //Start MainScreen Without Point
-    //MainScreen(0);    
-    //SettingScreen();
-    GameScreen(4);
+    MainScreen(0);    
 
     //Stop Key Input
     StopInput();
 }
-
-
 
 
 //----------Functions----------
@@ -95,9 +93,30 @@ void MainScreen(int point) {
     resize_term(14, 11);
 
     //Get Ranking
-    int highestPoint = readInt("Rank", "Point", 0, settingFile);
+    int highestPoint = 0;
+
+    FILE* fp;
+    errno_t error = fopen_s(&fp, "Rank.txt", "r");
+    //Get Highest Point
+    if (error == 0) {
+        while (fgets(string, CHARBUFF, fp) != NULL) {
+            int tmpPoint = atoi(string);
+            if (tmpPoint > highestPoint) {
+                highestPoint = tmpPoint;
+            }
+        }
+        fclose(fp);
+    }
+
+    //Write Highest Point
     if (point > highestPoint) {
         highestPoint = point;
+        error = fopen_s(&fp, "Rank.txt", "a");
+        if (error == 0) {
+            sprintf_s(string, "%d\n", highestPoint);
+            fputs(string, fp);
+            fclose(fp);
+        }
         writeInt("Rank", "Point", point, settingFile);
     }
 
@@ -236,8 +255,6 @@ void GameScreen(int colorNum) {
             field[y][x] = 0;
         }
     }
-
-    char string[BUFFSIZE];
     
     //Set Screen Size
     resize_term(16, 24);
@@ -253,6 +270,8 @@ void GameScreen(int colorNum) {
     bool isGround;
     int fps = 30;
     int counter = 0;
+    int textPlaceX = 16;
+    int textPlaceY = 11;
     int dropDuration = 1000;
 
     while (true) {
@@ -317,6 +336,8 @@ void GameScreen(int colorNum) {
 
         //Show Display
         DrawField(&nextPuyo, &nextNextPuyo);
+        //Show Score
+        ShowScore(score);
         DrawPuyoPuyo(&nowPuyo);
         refresh();
 
@@ -330,7 +351,8 @@ void GameScreen(int colorNum) {
             //Set Sub Puyo
             field[nowPuyo.mainPuyoPositionY + directionVec.y][nowPuyo.mainPuyoPositionX + directionVec.x] = nowPuyo.subPuyo->color;
 
-            //Start Combp
+            //Start Combo
+            int comboCounter = 0;
             while (true) {
                 //Drop All Puyos
                 while (DropPuyo()) {
@@ -345,7 +367,7 @@ void GameScreen(int colorNum) {
                 int comboField[HEIGHT][WIDTH] = {};  //0:not checked 1:checked 2:no combo 3:combo
                 for (int y = 0; y < HEIGHT; y++) {
                     for (int x = 0; x < WIDTH; x++) {
-                        if (!comboField[y][x]) {
+                        if (!comboField[y][x] && field[y][x]) {
                             int counter = 0;
                             CheckField(comboField, x, y, &counter, field[y][x]);
                             if (counter >= 4) flag = true;
@@ -358,10 +380,43 @@ void GameScreen(int colorNum) {
                     }
                 }
 
+                //Combo
+                if (flag) {
+                    //Change Puyo Style
+                    for (int y = 0; y < HEIGHT; y++) {
+                        for (int x = 0; x < WIDTH; x++) {
+                            if (comboField[y][x] == 3) DrawPuyo(x, y, field[y][x], true);
+                        }
+                    }
 
-                
-                //Finish Combo
-                if (!flag) break;
+                    //Display Combo
+                    comboCounter++;
+                    char tmpString[CHARBUFF];
+                    sprintf_s(tmpString, "%02dCombo", comboCounter);
+                    DrawString(textPlaceX, textPlaceY, tmpString, YELLOW_PAIR);
+                    ShowScore(score);
+
+                    refresh();
+                    napms(1000);
+
+                    //Destroy Puyo
+                    int puyoCounter = 0;
+                    for (int y = 0; y < HEIGHT; y++) {
+                        for (int x = 0; x < WIDTH; x++) {
+                            if (comboField[y][x] == 3) {
+                                field[y][x] = 0;
+                                puyoCounter++;
+                            }
+                        }
+                    }
+                    //Add Score
+                    score += puyoCounter * comboCounter;
+                }
+                //No Combo
+                else
+                {
+                    break;
+                }
             }
 
             //Generate Next Puyo
@@ -369,10 +424,18 @@ void GameScreen(int colorNum) {
             nextPuyo = nextNextPuyo;
             nextNextPuyo = *(new PuyoPuyo(colorNum));
             SetPuyoPositions(&nowPuyo, &nextPuyo, &nextNextPuyo);
+            if (field[1][2] || field[0][2]) break;
         }
 
         Wait(fps);
     }
+
+    erase();
+    DrawString(8, 7, "GameOver", YELLOW_PAIR);
+
+    refresh();
+    napms(2000);
+
 
     //Go Back to Title Screen
     MainScreen(score);
@@ -381,7 +444,7 @@ void GameScreen(int colorNum) {
 
 //Draw Options
 void DrawPuyo(int posX, int posY, int colorNum, bool flag) {
-    DrawString((posX + 1) * 2, posY + 2, flag ? "◎":"●", colorNum);
+    DrawString((posX + 1) * 2, posY + 2, flag ? "()":"●", colorNum);
 }
 void DrawPuyoPuyo(PuyoPuyo* puyoPuyo) {
     Vector2 vec = DirectionToVector(puyoPuyo->puyoDirection);
@@ -503,7 +566,12 @@ bool DropPuyo() {
 }
 
 //Check Field Rensa
-void CheckField(int comboField[][WIDTH], int x, int y, int* counter, int color) {
+void CheckField(int comboField[HEIGHT][WIDTH], int x, int y, int* counter, int color) {
+    //Check Field Border
+    if (x < 0 || y < y) return;
+    if (x >= WIDTH || y >= HEIGHT) return;
+
+    //Check Color
     if (!comboField[y][x] && field[y][x] == color) {
         comboField[y][x] = 1;
     }
@@ -514,11 +582,22 @@ void CheckField(int comboField[][WIDTH], int x, int y, int* counter, int color) 
     *counter = *counter + 1;
 
     //Check Left
-    if (x > 0) CheckField(comboField, x - 1, y, counter, color);
+    CheckField(comboField, x - 1, y, counter, color);
     //Check Right
-    if (x < WIDTH - 1) CheckField(comboField, x + 1, y, counter, color);
+    CheckField(comboField, x + 1, y, counter, color);
     //Check Up
-    if (y > 0) CheckField(comboField, x, y - 1, counter, color);
+    CheckField(comboField, x, y - 1, counter, color);
     //Check Down
-    if (x < HEIGHT - 1) CheckField(comboField, x, y + 1, counter, color);
+    CheckField(comboField, x, y + 1, counter, color);
+}
+
+//Show Score
+void ShowScore(int score) {
+    int x = 16;
+    int y = 13;
+
+    char string[CHARBUFF];
+    sprintf_s(string, "%06d", score);
+    DrawString(x, y, "Score", WHITE_PAIR);
+    DrawString(x, y + 1, string, WHITE_PAIR);
 }

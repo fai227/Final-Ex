@@ -17,7 +17,7 @@ struct Puyo
 	//Constructor
 	Puyo(int colorNum) {
 		//Choose Color with Random
-		color = rand() % 5 + 1;
+		color = rand() % colorNum + 1;
 	}
 };
 
