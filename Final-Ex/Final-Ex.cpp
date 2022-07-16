@@ -117,7 +117,6 @@ void MainScreen(int point) {
             fputs(string, fp);
             fclose(fp);
         }
-        writeInt("Rank", "Point", point, settingFile);
     }
 
     int choose = 0;
