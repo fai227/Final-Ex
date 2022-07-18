@@ -11,9 +11,9 @@
 #define HEIGHT 12
 
 //----------Prototype Declaration----------
-void MainScreen(int point);
+void MainScreen();
 void SettingScreen();
-void GameScreen(int colorNum);
+int GameScreen(int colorNum);
 void DrawPuyo(int, int, int, bool);
 void DrawPuyoPuyo(PuyoPuyo*);
 void DrawChar(int, int, char, int);
@@ -72,7 +72,7 @@ int main()
 
 
     //Start MainScreen Without Point
-    MainScreen(0);    
+    MainScreen();    
 
     //Stop Key Input
     StopInput();
@@ -81,107 +81,112 @@ int main()
 
 //----------Functions----------
 //Display Main Screen
-void MainScreen(int point) {
+void MainScreen() {
 
-    char playString[] = "Play";
-    char settingString[] = "Setting";
-    char exitString[] = "Exit";
+    int point = 0;
+    int nextScene = 1;
 
-    char string[CHARBUFF];
+    while (nextScene) {
+        int i = 0;
 
-    //Set Screen Size
-    resize_term(14, 11);
+        char playString[] = "Play";
+        char settingString[] = "Setting";
+        char exitString[] = "Exit";
 
-    //Get Ranking
-    int highestPoint = 0;
+        char string[CHARBUFF];
 
-    FILE* fp;
-    errno_t error = fopen_s(&fp, "Rank.txt", "r");
-    //Get Highest Point
-    if (error == 0) {
-        while (fgets(string, CHARBUFF, fp) != NULL) {
-            int tmpPoint = atoi(string);
-            if (tmpPoint > highestPoint) {
-                highestPoint = tmpPoint;
-            }
-        }
-        fclose(fp);
-    }
+        //Set Screen Size
+        resize_term(14, 11);
 
-    //Write Highest Point
-    if (point > highestPoint) {
-        highestPoint = point;
-        error = fopen_s(&fp, "Rank.txt", "a");
+        //Get Ranking
+        int highestPoint = 0;
+
+        FILE* fp;
+        errno_t error = fopen_s(&fp, "Rank.txt", "r");
+        //Get Highest Point
         if (error == 0) {
-            sprintf_s(string, "%d\n", highestPoint);
-            fputs(string, fp);
+            while (fgets(string, CHARBUFF, fp) != NULL) {
+                int tmpPoint = atoi(string);
+                if (tmpPoint > highestPoint) {
+                    highestPoint = tmpPoint;
+                }
+            }
             fclose(fp);
         }
-    }
 
-    int choose = 0;
-    int difficulty = 4;
-    int posArray[] = {3, 10, 12};
-    int nextScene = -1;
-
-    while (true) {
-        //Clear Display
-        erase();
-
-        //Key Inputs
-        if (GetButtonDown(0)) {    //Up
-            choose = (choose + 2) % 3;
-        }
-        if (GetButtonDown(2)) {   //Down
-            choose = (choose + 1) % 3;
-        }
-        if (GetButtonDown(4)) {  //Enter
-            nextScene = choose;
-        }
-        if (GetButtonDown(3)) {  //Right
-            if (difficulty < 5) difficulty++;
-        }
-        if (GetButtonDown(1)) {  //Left
-            if (difficulty > 3) difficulty--;
-        }
-        if (GetButtonDown(6)) {  //Exit
-            choose = 2;
-        }
-        if (GetButtonDown(5)) {
-            choose = 2;
+        //Write Highest Point
+        if (point > highestPoint) {
+            highestPoint = point;
+            error = fopen_s(&fp, "Rank.txt", "a");
+            if (error == 0) {
+                sprintf_s(string, "%d\n", highestPoint);
+                fputs(string, fp);
+                fclose(fp);
+            }
         }
 
-        //DrawTitle
-        DrawString(2, 1, "PuyoPuyo", GREEN_PAIR);
+        int choose = 0;
+        int difficulty = 4;
+        int posArray[] = { 3, 10, 12 };
 
-        //Draw Highest Score
-        sprintf_s(string, "%06d", highestPoint);
-        DrawString(3, 4, "Highest", WHITE_PAIR);
-        DrawString(4, 5, string, WHITE_PAIR);
+        while (true) {
+            //Clear Display
+            erase();
 
-        //Draw Difficulty
-        DrawString(1, 7, "PuyoColor", WHITE_PAIR);
-        sprintf_s(string, "%d", difficulty);
-        DrawString(5, 8, string, WHITE_PAIR);
+            //Key Inputs
+            if (GetButtonDown(0)) {    //Up
+                choose = (choose + 2) % 3;
+            }
+            if (GetButtonDown(2)) {   //Down
+                choose = (choose + 1) % 3;
+            }
+            if (GetButtonDown(4)) {  //Enter
+                nextScene = (choose + 1) % 3;
+                break;
+            }
+            if (GetButtonDown(3)) {  //Right
+                if (difficulty < 5) difficulty++;
+            }
+            if (GetButtonDown(1)) {  //Left
+                if (difficulty > 3) difficulty--;
+            }
+            if (GetButtonDown(6)) {  //Exit
+                choose = 2;
+            }
+            if (GetButtonDown(5)) {
+                choose = 2;
+            }
 
-        //Draw Texts
-        DrawString(3, posArray[0], playString, choose == 0 ? YELLOW_PAIR : WHITE_PAIR);
-        DrawString(3, posArray[1], settingString, choose == 1 ? YELLOW_PAIR : WHITE_PAIR);
-        DrawString(3, posArray[2], exitString, choose == 2 ? YELLOW_PAIR : WHITE_PAIR);
+            //DrawTitle
+            DrawString(2, 1, "PuyoPuyo", GREEN_PAIR);
 
-        //Draw Pointer
-        DrawChar(1, posArray[choose], '*', YELLOW_PAIR);
+            //Draw Highest Score
+            sprintf_s(string, "%06d", highestPoint);
+            DrawString(3, 4, "Highest", WHITE_PAIR);
+            DrawString(4, 5, string, WHITE_PAIR);
 
-        //Display
-        refresh();
-        Wait(15);
+            //Draw Difficulty
+            DrawString(1, 7, "PuyoColor", WHITE_PAIR);
+            sprintf_s(string, "%d", difficulty);
+            DrawString(5, 8, string, WHITE_PAIR);
 
-        if (nextScene >= 0) break;
-    }
+            //Draw Texts
+            DrawString(3, posArray[0], playString, choose == 0 ? YELLOW_PAIR : WHITE_PAIR);
+            DrawString(3, posArray[1], settingString, choose == 1 ? YELLOW_PAIR : WHITE_PAIR);
+            DrawString(3, posArray[2], exitString, choose == 2 ? YELLOW_PAIR : WHITE_PAIR);
 
-    //Go to Next Scene
-    if (nextScene == 0) GameScreen(difficulty);
-    else if (nextScene == 1) SettingScreen();
+            //Draw Pointer
+            DrawChar(1, posArray[choose], '*', YELLOW_PAIR);
+
+            //Display
+            refresh();
+            Wait(15);
+        }
+
+        //Go to Next Scene
+        if (nextScene == 1) point = GameScreen(difficulty);
+        else if (nextScene == 2) SettingScreen();
+    }    
 }
 
 //Display Setting Screen
@@ -242,12 +247,10 @@ void SettingScreen() {
         refresh();
         Wait(15);
     }
-
-    MainScreen(0);
 }
 
 //Display Game Screen
-void GameScreen(int colorNum) {
+int GameScreen(int colorNum) {
     //Initialize Field
     for (int y = 0; y < HEIGHT; y++) {
         for (int x = 0; x < WIDTH; x++) {
@@ -437,7 +440,7 @@ void GameScreen(int colorNum) {
 
 
     //Go Back to Title Screen
-    MainScreen(score);
+    return score;
 }
 
 
